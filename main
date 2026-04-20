@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Angle Meter</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #111;
+    color: white;
+}
+
+h1 {
+    margin-top: 20px;
+}
+
+.angle {
+    font-size: 60px;
+    margin: 20px 0;
+}
+
+.circle {
+    width: 250px;
+    height: 250px;
+    border: 5px solid white;
+    border-radius: 50%;
+    margin: 20px auto;
+    position: relative;
+}
+
+.needle {
+    width: 3px;
+    height: 120px;
+    background: red;
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: bottom;
+}
+
+button {
+    padding: 12px 18px;
+    margin: 8px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+}
+
+.light {
+    background: #f5f5f5;
+    color: black;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Angle Meter</h1>
+
+<div class="angle" id="angle">0°</div>
+
+<div class="circle">
+    <div class="needle" id="needle"></div>
+</div>
+
+<p>X: <span id="x">0</span>° | Y: <span id="y">0</span>° | Z: <span id="z">0</span>°</p>
+
+<button onclick="requestAccess()">Start Sensor</button>
+<button onclick="calibrate()">Calibrate</button>
+<button onclick="toggleHold()">Hold</button>
+<button onclick="toggleTheme()">Light/Dark</button>
+
+<script>
+let offset = 0;
+let hold = false;
+
+function requestAccess() {
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+        DeviceOrientationEvent.requestPermission()
+        .then(response => {
+            if (response === "granted") {
+                startSensor();
+            } else {
+                alert("Permission denied!");
+            }
+        })
+        .catch(console.error);
+    } else {
+        startSensor();
+    }
+}
+
+function startSensor() {
+    window.addEventListener("deviceorientation", updateAngle);
+}
+
+function updateAngle(e) {
+    if (hold) return;
+
+    let x = e.beta || 0;
+    let y = e.gamma || 0;
+    let z = e.alpha || 0;
+
+    let angle = x - offset;
+
+    document.getElementById("angle").innerText = angle.toFixed(1) + "°";
+    document.getElementById("x").innerText = x.toFixed(1);
+    document.getElementById("y").innerText = y.toFixed(1);
+    document.getElementById("z").innerText = z.toFixed(1);
+
+    document.getElementById("needle").style.transform =
+        "rotate(" + angle + "deg)";
+}
+
+function calibrate() {
+    offset = parseFloat(document.getElementById("x").innerText);
+}
+
+function toggleHold() {
+    hold = !hold;
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("light");
+}
+</script>
+
+</body>
+</html>
